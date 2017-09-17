@@ -1,8 +1,53 @@
-# CarND-Controls-PID
-Self-Driving Car Engineer Nanodegree Program
+# **Udacity Self-Driving Car Enginer Nanodegree - TERM 2 - *PID Control Project***
+
+## Context
+
+The purpose of this project was to "build a PID controller and tune the PID hyperparameters by applying the general processing flow as described in the lessons," and to test the solution on the simulator!". The simulator provides cross-track error (CTE), speed, and steering angle data via local websocket. The PID (proportional/integral/differential) controller must respond with steering and throttle commands to drive the car reliably around the simulator track.
+
+## Rubric Discussion Points
+
+- *Describe the effect each of the P, I, D components had in your implementation.*
+
+The P (proportional) component of the controller, causes the car to steer proportitional (and opposite) to the car's distance from the lane center (ie CTE). If the CTE is +ve (ie if the car is far to the right, it steers hard to the left) and vice versa.
+
+The D (differential) component of the controller, reduces the P component's tendency to ring and overshoot the center line. A properly tuned D parameter will cause the car to approach the center line smoothly without ringing.
+
+The I (integral) component of the controller compensates for the bias in the CTE which prevents PD controller from reaching the center line. It also helps the reduce the CTE especially around curves.
+
+The final PID controller implementation performed much like in the following video:
+
+[Final Parameters]()
+
+The following video demonstrates the subtle difference in performance when the I component is removed from the controller. Notice that the center line is not followed as closely around curves.
+
+[I Parameter Removed]()
+
+This final video demonstrates the disastrous effects of removing the D component from the controller. It begins to ring back and forth across the center line until finally leaving the track.
+
+[D Parameter Removed]()
+
+
+- *Describe how the final hyperparameters were chosen.*
+
+Hyperparameters for steering PID was tuned manually at first. Took the initial values from the lesson and it performed reasonably well.
+Secondly, given the nature of track and to avoid having the parameters overfit on this given track, have considered using "back-propagation" technique to constantly update the hyperparameters every 50 iterations. This allows for the controller to fine tune the hyperparameters on the fly for any given track.
+
+Secondly, as for the throttle, followed the below simple logic:
+
+If (velocity < 30 mph), then 
+   Set throttle_spd = 0.5
+Else
+   if (fabs(cte) < 0.6 m), then
+      Increase the throttle_spd by 6%.
+   else
+      Decrease the throttle_spd by 12%
+   end if
+End If
 
 ---
 
+# **Original Udacity README**
+---
 ## Dependencies
 
 * cmake >= 3.5
@@ -12,8 +57,7 @@ Self-Driving Car Engineer Nanodegree Program
   * Mac: [install Xcode command line tools to get make](https://developer.apple.com/xcode/features/)
   * Windows: [Click here for installation instructions](http://gnuwin32.sourceforge.net/packages/make.htm)
 * gcc/g++ >= 5.4
-  * Linux: gcc / g++ is installed by default on most Linux distros
-  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
+  * Linux: gcc / g++ is installed by default on most Linux distros  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
   * Windows: recommend using [MinGW](http://www.mingw.org/)
 * [uWebSockets](https://github.com/uWebSockets/uWebSockets)
   * Run either `./install-mac.sh` or `./install-ubuntu.sh`.
@@ -22,8 +66,7 @@ Self-Driving Car Engineer Nanodegree Program
     git clone https://github.com/uWebSockets/uWebSockets 
     cd uWebSockets
     git checkout e94b6e1
-    ```
-    Some function signatures have changed in v0.14.x. See [this PR](https://github.com/udacity/CarND-MPC-Project/pull/3) for more details.
+    ```    Some function signatures have changed in v0.14.x. See [this PR](https://github.com/udacity/CarND-MPC-Project/pull/3) for more details.
 * Simulator. You can download these from the [project intro page](https://github.com/udacity/self-driving-car-sim/releases) in the classroom.
 
 There's an experimental patch for windows in this [PR](https://github.com/udacity/CarND-PID-Control-Project/pull/3)
