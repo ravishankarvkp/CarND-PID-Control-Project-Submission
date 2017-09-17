@@ -16,15 +16,13 @@ The I (integral) component of the controller compensates for the bias in the CTE
 
 The final PID controller implementation performed much like in the following video:
 
-[Final Parameters]()
+[Final Video](https://www.youtube.com/watch?v=vK5yN3zg180)
 
-The following video demonstrates the subtle difference in performance when the I component is removed from the controller. Notice that the center line is not followed as closely around curves.
+Additional Observations:
 
-[I Parameter Removed]()
-
-This final video demonstrates the disastrous effects of removing the D component from the controller. It begins to ring back and forth across the center line until finally leaving the track.
-
-[D Parameter Removed]()
+The following subtle difference in performance was observed, 
+when the I component is removed from the controller - the center line is not followed as closely around curves.
+When D component was removed from the controller, the car begins to ring back and forth across the center line until finally leaving the track.
 
 
 - *Describe how the final hyperparameters were chosen.*
