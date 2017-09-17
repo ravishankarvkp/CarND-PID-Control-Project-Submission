@@ -20,7 +20,7 @@ The final PID controller implementation performed much like in the following vid
 
 The following video demonstrates the subtle difference in performance when the I component is removed from the controller. Notice that the center line is not followed as closely around curves.
 
-[I Parameter Removed]()
+I Parameter Removed]()
 
 This final video demonstrates the disastrous effects of removing the D component from the controller. It begins to ring back and forth across the center line until finally leaving the track.
 
@@ -34,15 +34,9 @@ Secondly, given the nature of track and to avoid having the parameters overfit o
 
 Secondly, as for the throttle, followed the below simple logic:
 
-If (velocity < 30 mph), then 
-   Set throttle_spd = 0.5
-Else
-   if (fabs(cte) < 0.6 m), then
-      Increase the throttle_spd by 6%.
-   else
-      Decrease the throttle_spd by 12%
-   end if
-End If
+* If (velocity < 30 mph), then set throttle_spd = 0.5
+* Else If (fabs(cte) < 0.6 m), then Increase the throttle_spd by 6%.
+* Else, Decrease the throttle_spd by 12%
 
 ---
 
