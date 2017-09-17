@@ -20,7 +20,7 @@ The final PID controller implementation performed much like in the following vid
 
 The following video demonstrates the subtle difference in performance when the I component is removed from the controller. Notice that the center line is not followed as closely around curves.
 
-I Parameter Removed]()
+[I Parameter Removed]()
 
 This final video demonstrates the disastrous effects of removing the D component from the controller. It begins to ring back and forth across the center line until finally leaving the track.
 
@@ -29,14 +29,106 @@ This final video demonstrates the disastrous effects of removing the D component
 
 - *Describe how the final hyperparameters were chosen.*
 
-Hyperparameters for steering PID was tuned manually at first. Took the initial values from the lesson and it performed reasonably well.
-Secondly, given the nature of track and to avoid having the parameters overfit on this given track, have considered using "back-propagation" technique to constantly update the hyperparameters every 50 iterations. This allows for the controller to fine tune the hyperparameters on the fly for any given track.
+Hyperparameters for steering PID was tuned manually at first. Took the initial values from the lesson and it performed reasonably well. Given the nature of track and to avoid having the parameters overfit on this given track, have considered using "back-propagation" technique to constantly update the hyperparameters every 50 iterations. This allows for the controller to fine tune the hyperparameters on the fly for any given track.
 
-Secondly, as for the throttle, followed the below simple logic:
+Parameters have been initially set to those derived in Project's Lesson by Sebastian Thrun using twiddle:
+
+```
+Kp = 0.2
+Ki = 0.004
+kd = 3.0
+```
+
+Later, these were updated to use the result of back-propagated values, after 20+ trips.
+
+```
+Kp = 0.202931
+Ki = -1.05288e-05
+Kd = 2.99888
+```
+
+I implemented **backpropagation** in the following function:
+
+```c++
+/** Tune Kp, Ki and Kd parameters.
+* Partial derivatives of f(Kp, Ki, Kd) = -Kp * p_error - Ki * i_error - Kd * d_error
+* WITH RESPECT TO Kp, Ki, Kd are -p_error, -i_error and -d_error respectively.
+* Note: For i_error, since CTE can be +ve or -ve, fabs() value is used for the purpose of determining partial derivative for Ki.
+*/
+void PID::backProp() 
+{
+	/* Determine the current epoch error. */
+	currentEpochError_ = sqrt(epochCumulativeError_ / epochLength_);
+
+	if (needsTraining_)
+	{
+		// Permanently stop training once criteria has been met.
+		needsTraining_ = currentEpochError_ > errorThreshold_;
+
+		// Determine the deltaEpochError
+		double deltaError = previousEpochError_ - currentEpochError_;
+		previousEpochError_ = currentEpochError_;
+
+		/*
+			* Backpropagate - Kx error and throttle the degree of change through learning Rate
+			* Kx: Kp, Ki or Kd
+			* dx: partial derivative for Kp, Ki or Kd respectively
+			* dE: total delta error over the whole epoch (previous epoch - current epoch)
+			*/
+		Kp -= Kp * deltaError * learnRate_ * (-p_error);
+		Ki -= Ki * deltaError * learnRate_ * (-i_e_fabs_error_);
+		Kd -= Kd * deltaError * learnRate_ * (-d_error);
+	}
+}
+```
+
+It computes individual (one of three among `Kp`, `Ki` and `Kd`) parameters' contribution to the total error and 
+updates it accordingly, every 50 iterations.
+
+The function that updates the steering value is defined as:
+
+`f(p_err, i_err, d_err) = -Kp * p_err - Ki * i_err - Kd * d_err`
+
+Since I am tuning `Kp`, `Ki` and `Kd`, to obtain partial derivatives **with respect to** `Kp`, `Ki` and `Kd`,
+that function must be viewed as `f(Kp, Ki, Kd)` with the partial derivatives equal to 
+`-p_error`, `-i_error` and `-d_error` accordingly.
+
+For i_error, since CTE can be +ve or -ve, fabs(cte) value is used for the purpose of determining partial derivative for Ki.
+
+It can be seen that the **backpropagation** updates are mostly concerned about `Ki`, with `Kp` and `Kd` staying pretty
+much unchanged and oscillating around `0.2` and `3.0`, while `Ki` **rapidly drops by one order of magnitude** to some
+value around `0.0003` or `3e-4`, having even gone to the negative territory for a brief period of time.
+
+
+Finally, as for the throttle, followed the below simple logic, to reduce the speed, when CTE increases significantly:
 
 * If (velocity < 30 mph), then set throttle_spd = 0.5
 * Else If (fabs(cte) < 0.6 m), then Increase the throttle_spd by 6%.
 * Else, Decrease the throttle_spd by 12%
+
+This is implemented in the below code block:
+
+```c++
+	  // Regulate the throttle, depending on the CTE, when speed is above 30 mph.
+	  // if CTE is less than 0.6 meters, then increase the speed by 6%, 
+	  // else reduce speed by 12%
+	  if (speed > 30)
+	  {
+		  if (fabs(cte) < 0.6)
+		  {
+			  throttle_spd += throttle_spd * 0.06;
+		  }
+		  else
+		  {
+			  throttle_spd -= throttle_spd * 0.12;
+		  }
+	  }
+	  else
+	  {
+		  throttle_spd = 0.5;
+	  }
+```  
+
 
 ---
 
