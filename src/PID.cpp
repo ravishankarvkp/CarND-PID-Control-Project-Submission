@@ -44,7 +44,7 @@ double PID::TotalError()
 
 void PID::UpdateError(double cte)
 {
-	d_error = (cte - p_error); /* Note, this would eval incorrectly for very 1st frame. */
+	d_error = (cte - p_error);
 	p_error = cte; 
 	i_error += (cte);
 

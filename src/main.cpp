@@ -82,17 +82,17 @@ int main()
 		  }
 
 		  // Regulate the throttle, depending on the CTE, when speed is above 30 mph.
-		  // if CTE is less than 0.6 meters, then increase the speed by 8%, 
-		  // else reduce speed by 20%
+		  // if CTE is less than 0.6 meters, then increase the speed by 6%, 
+		  // else reduce speed by 12%
 		  if (speed > 30)
 		  {
 			  if (fabs(cte) < 0.6)
 			  {
-				  throttle_spd += throttle_spd * 0.08;
+				  throttle_spd += throttle_spd * 0.06;
 			  }
 			  else
 			  {
-				  throttle_spd -= throttle_spd * 0.2;
+				  throttle_spd -= throttle_spd * 0.12;
 			  }
 		  }
 		  else
